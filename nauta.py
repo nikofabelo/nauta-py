@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 
 from getpass import getpass
-import requests, sys, time
+import httpx, sys, time
 
-def die(x): print(x); exit()
+def die(s): print(s); exit()
 
 def fetch_user_time():
+	query_url = "https://secure.etecsa.net:8443/EtecsaQueryServlet"
+
+	data = {
+		"op": "getLeftTime",
+		"username": user,
+		"ATTRIBUTE_UUID": ATTRIBUTE_UUID
+	}
+
 	try:
-		query_url = "https://secure.etecsa.net:8443/EtecsaQueryServlet?op=getLeftTime"
-
-		data = {
-				"username": user,
-				"ATTRIBUTE_UUID": ATTRIBUTE_UUID
-			}
-
-		response = requests.post(
+		response = httpx.post(
 			query_url, data=data
 		)
 
@@ -54,7 +55,7 @@ if __name__ == "__main__":
 
 	elif sys.argv[1] in ["-V", "--version"]:
 		die(
-			"Nauta v2.0, made in Cuba with Linux-GNU.\n\n"
+			"Nauta v2.1, made in Cuba with Linux-GNU.\n\n"
 			+ "Copyright © 2021- Yoel N. Fabelo.\n"
 			+ "License GPLv3+: GNU GPL version 3 or later\n"
 			+ "<https://gnu.org/licenses/gpl.html>.\n"
@@ -75,16 +76,17 @@ if __name__ == "__main__":
 
 	connected = False
 	for i in range(30):
+		login_url = "https://secure.etecsa.net:8443/LoginServlet"
+
+		data = {
+			"username": user,
+			"password": password
+		}
+
 		try:
-			login_url = "https://secure.etecsa.net:8443/LoginServlet"
-
-			data = {
-				"username": user,
-				"password": password
-			}
-
-			response = requests.post(
-				login_url, data=data
+			response = httpx.post(
+				login_url, data=data,
+				follow_redirects=True
 			)
 
 			if response.status_code == 200:
@@ -100,49 +102,49 @@ if __name__ == "__main__":
 			+ "Please check in your settings that you're connected to hotspot WIFI_ETECSA."
 		)
 
-		if "no tiene saldo" in response:
-			die(
-				f"nauta: no time left for user {user[:user.find("@")]}\n"
-				+ "Please load credit on your Nauta account first."
-			)
-
-		elif "ya est" in response:
-			die(
-				f"nauta: user {user[:user.find("@")]} already connected\n"
-				+ "Please disconnect first, in case online person isn't you, call 118."
-			)
-
-		elif "correctos" in response:
-			die(
-				"nauta: couldn't login with provided credentials\n"
-				+ "Please ensure yourself of entering the correct username and password."
-			)
-
-		for line in response.split("\n"):
-			if "var urlParam = " in line:
-				ATTRIBUTE_UUID = line[
-					line.find("ATTRIBUTE_UUID") + 15
-					:line.find("&CSRFHW")
-				]
-
-		input(
-			f" Logged in with user {user[:user.find("@")]}.\n"
-			+ f"  local time: {get_formatted_time(time.localtime())}\n"
-			+ f"  remaining time: {fetch_user_time()}\n"
-			+ "  Send RETURN to disconnect.\n... "
+	if "no tiene saldo" in response:
+		die(
+			f"nauta: no time left for user {user[:user.find('@')]}\n"
+			+ "Please load credit on your Nauta account first."
 		)
+
+	elif "ya est" in response:
+		die(
+			f"nauta: user {user[:user.find('@')]} already connected\n"
+			+ "Please disconnect first, in case online person isn't you, call 118."
+		)
+
+	elif "correctos" in response:
+		die(
+			"nauta: couldn't login with provided credentials\n"
+			+ "Please ensure yourself of entering the correct username and password."
+		)
+
+	for line in response.split("\n"):
+		if "var urlParam = " in line:
+			ATTRIBUTE_UUID = line[
+				line.find("ATTRIBUTE_UUID") + 15
+				:line.find("&CSRFHW")
+			]
+
+	input(
+		f" Logged in with user {user[:user.find('@')]}.\n"
+		+ f"  local time: {get_formatted_time(time.localtime())}\n"
+		+ f"  remaining time: {fetch_user_time()}\n"
+		+ "  Send RETURN to disconnect.\n... "
+	)
 
 	connected = False
 	for i in range(30):
+		logout_url = "https://secure.etecsa.net:8443/LogoutServlet"
+
+		data = {
+			"username": user,
+			"ATTRIBUTE_UUID": ATTRIBUTE_UUID
+		}
+
 		try:
-			logout_url = "https://secure.etecsa.net:8443/LogoutServlet"
-
-			data = {
-				"username": user,
-				"ATTRIBUTE_UUID": ATTRIBUTE_UUID
-			}
-
-			response = requests.post(
+			response = httpx.post(
 				logout_url, data=data
 			)
 
