@@ -1,0 +1,5 @@
+Metadata-Version: 2.1
+Name: nauta
+Version: 2.1
+License-File: LICENSE
+Requires-Dist: httpx==0.27.0

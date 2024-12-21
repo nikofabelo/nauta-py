@@ -1,0 +1,10 @@
+LICENSE
+README.md
+nauta.py
+setup.py
+nauta.egg-info/PKG-INFO
+nauta.egg-info/SOURCES.txt
+nauta.egg-info/dependency_links.txt
+nauta.egg-info/entry_points.txt
+nauta.egg-info/requires.txt
+nauta.egg-info/top_level.txt
