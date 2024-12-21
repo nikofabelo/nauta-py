@@ -12,5 +12,10 @@ It might be that you're in a crowded place, in that case, call the routine like:
 or
 - `python3 nauta.py username`
 
+## Installation
+Install using pipx:
+- `pip3 install pipx`
+- `pipx install .`
+
 ## Screenshots
 ![screenshot.png](screenshot.png)
